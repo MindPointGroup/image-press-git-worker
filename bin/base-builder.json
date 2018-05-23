@@ -1,0 +1,27 @@
+{
+  "builders": [{
+    "type": "amazon-ebs",
+    "region": "us-east-1",
+    "instance_type": "t2.micro",
+    "vpc_id": "vpc-6486231c",
+    "subnet_id": "subnet-3069861f",
+    "ssh_username": "root",
+    "ami_name": "imgpress worker {{ timestamp }}",
+    "source_ami": "ami-4b17a034",
+    "ami_block_device_mappings": [{
+      "delete_on_termination": true,
+      "device_name": "/dev/sda1",
+      "volume_size": 5,
+      "volume_type": "gp2"
+    }],
+    "ami_groups": ["all"],
+    "associate_public_ip_address": true,
+    "ssh_keypair_name": "davila",
+    "ssh_agent_auth": "true",
+    "ssh_interface": "public_ip"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "./git-worker.sh"
+  }]
+}

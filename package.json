@@ -1,0 +1,18 @@
+{
+  "name": "imgpress-git-worker",
+  "version": "1.0.0",
+  "description": "A CLI interface to clone, archive, and post git repos for imgPress",
+  "bin": "./index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jonathan I. Davila",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "node-fetch": "^2.1.2"
+  },
+  "devDependencies": {
+    "tape": "^4.9.0"
+  }
+}
