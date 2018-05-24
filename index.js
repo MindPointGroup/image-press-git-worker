@@ -170,7 +170,13 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
       console.log(res)
       console.log(res.ok)
       const result = await res.json()
-      console.log(result)
+
+      if (!res.ok) {
+        console.log(result)
+        await phoneHome({ failMsg: result.message, imgPressAuthToken, repoUrl })
+      }
+      return { data: result }
+
     } else {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -187,7 +193,12 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
       console.log(res)
       console.log(res.ok)
       const result = await res.json()
-      console.log(result)
+      if (!res.ok) {
+        console.error('Error in reporting failure to imgpress')
+        console.log(result)
+        return { error: result.message }
+      }
+      return { data: result }
     }
     return { data: 'success' }
   } catch (err) {
