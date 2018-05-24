@@ -13,13 +13,6 @@ const argv = require('minimist')(process.argv.slice(2))
 
 const notHiddenFile = (filePath) => !(/(^|\/)\.[^/.]/).test(filePath)
 
-const getDefaultDirName = (endpoint) => {
-  const slash = endpoint.lastIndexOf('/')
-  const afterSlash = endpoint.substring(slash + 1)
-  const period = afterSlash.lastIndexOf('.')
-  return afterSlash.substring(0, period)
-}
-
 const listFiles = (repoDir) => {
   try {
     let filesToReturn = []
@@ -69,13 +62,12 @@ const validateNetwork = async ({ endpoint }) => {
   }
 }
 
-const createArchive = async ({ format, repoUrl, repoBranch }) => {
+const createArchive = async ({ format, repoBranch }) => {
   try {
     if (!format) {
       return { err: new Error('format is required') }
     }
-    const repoName = getDefaultDirName(repoUrl)
-    execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} ${repoBranch}> /tmp/imgpress/${repoName}.${format})`)
+    execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} ${repoBranch}> /tmp/imgpress/archive.${format})`)
     return { data: 'success' }
   } catch (err) {
     return { err }
@@ -86,9 +78,9 @@ const pushToS3 = async ({ repoUrl, imgPressAuthToken }) => {
   try {
     let pushEndpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/upload'
     if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/repo/upload'
-    const repoName = getDefaultDirName(repoUrl)
-    const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/${repoName}.tar.gz`)).toString('base64')
-    const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/${repoName}.zip`)).toString('base64')
+    const safeRepoUrl = repoUrl.replace('/', '_')
+    const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
+    const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
     const res = await fetch(pushEndpoint, {
       method: 'POST',
       body: JSON.stringify({
@@ -148,7 +140,7 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
   }
 }
 
-const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
+const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
   try {
     console.log('Calling back to imgpress service...')
     const repoName = getDefaultDirName(repoUrl)
@@ -176,7 +168,6 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
         await phoneHome({ failMsg: result.message, imgPressAuthToken, repoUrl })
       }
       return { data: result }
-
     } else {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -190,8 +181,6 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
           'Authorization': imgPressAuthToken
         }
       })
-      console.log(res)
-      console.log(res.ok)
       const result = await res.json()
       if (!res.ok) {
         console.error('Error in reporting failure to imgpress')
@@ -200,11 +189,9 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
       }
       return { data: result }
     }
-    return { data: 'success' }
   } catch (err) {
     return { err }
   }
-
 }
 
 const main = async () => {
@@ -236,18 +223,17 @@ const main = async () => {
       throw errFiles
     }
 
-    const { err: errTar } = await createArchive({ format: 'tar.gz', repoUrl, repoBranch })
+    const { err: errTar } = await createArchive({ format: 'tar.gz', repoBranch })
     if (errTar) {
-
       throw errTar
     }
 
-    const { err: errZip } = await createArchive({ format: 'zip', repoUrl, repoBranch })
+    const { err: errZip } = await createArchive({ format: 'zip', repoBranch })
     if (errZip) {
       throw errZip
     }
 
-    const { err: errPush } = await pushToS3({repoUrl, imgPressAuthToken})
+    const { err: errPush } = await pushToS3({ imgPressAuthToken, repoUrl })
     if (errPush) {
       throw errPush
     }
