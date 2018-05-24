@@ -167,6 +167,8 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
           'Authorization': imgPressAuthToken
         }
       })
+      console.log(res)
+      console.log(res.ok)
       const result = await res.json()
       console.log(result)
     } else {
@@ -182,6 +184,8 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
           'Authorization': imgPressAuthToken
         }
       })
+      console.log(res)
+      console.log(res.ok)
       const result = await res.json()
       console.log(result)
     }
