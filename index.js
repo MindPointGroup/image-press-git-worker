@@ -78,7 +78,7 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
   try {
     let pushEndpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/upload'
     if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/repo/upload'
-    const safeRepoUrl = repoUrl.replace('/', '_')
+    const safeRepoUrl = repoUrl.split(/[^\w\s]/gi).join('')
     const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
     const res = await fetch(pushEndpoint, {
