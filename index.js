@@ -215,7 +215,7 @@ const main = async () => {
   const imgPressAuthToken = argv.token
   if (!repoUrl || !imgPressAuthToken) {
     console.error('Missing arguments')
-    exit(1)
+    throw new Error('Missing required arguments')
   }
   try {
     if (!existsSync('/tmp/imgpress')) mkdirSync('/tmp/imgpress')
@@ -223,43 +223,38 @@ const main = async () => {
 
     const { err: errNetwork } = await validateNetwork({ endpoint: repoUrl })
     if (errNetwork) {
-      console.error(errNetwork.message)
-      exit(1)
+      throw errNetwork
     }
 
     const { err: errClone } = await cloneRepo({ repoUrl, username, secret })
     if (errClone) {
-      console.error(errClone.message)
-      exit(1)
+      throw errClone
     }
 
     const { err: errFiles, data: fileList } = listFiles('/tmp/imgpress/repo')
     if (errFiles) {
-      console.error(errFiles.message)
-      exit(1)
+      throw errFiles
     }
 
     const { err: errTar } = await createArchive({ format: 'tar.gz', repoUrl, repoBranch })
     if (errTar) {
-      console.error(errTar.message)
-      exit(1)
+
+      throw errTar
     }
 
     const { err: errZip } = await createArchive({ format: 'zip', repoUrl, repoBranch })
     if (errZip) {
-      console.error(errZip.message)
-      exit(1)
+      throw errZip
     }
 
     const { err: errPush } = await pushToS3({repoUrl, imgPressAuthToken})
     if (errPush) {
-      console.error(errPush.message)
-      exit(1)
+      throw errPush
     }
 
     const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, repoUrl })
     if (errPhone) {
-      console.error(errPhone)
+      throw errPhone
     }
     exit(0)
   } catch (err) {
