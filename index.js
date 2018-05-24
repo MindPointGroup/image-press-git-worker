@@ -149,37 +149,42 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
 }
 
 const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
-  const repoName = getDefaultDirName(repoUrl)
-  let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/status'
-  if (env.IMGPRESS_ENV === 'production') endpoint = 'https://api.imgpress.io/repo/status'
-  if (!failMsg) {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      body: JSON.stringify({
-        fileList: fileList,
-        success: true,
-        repoName: repoName
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': imgPressAuthToken
-      }
-    })
-    await res.json()
-  } else {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      body: JSON.stringify({
-        errorMsg: failMsg,
-        success: false,
-        repoName: repoName
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': imgPressAuthToken
-      }
-    })
-    await res.json()
+  try {
+    console.log('Calling back to imgpress service...')
+    const repoName = getDefaultDirName(repoUrl)
+    let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/status'
+    if (env.IMGPRESS_ENV === 'production') endpoint = 'https://api.imgpress.io/repo/status'
+    if (!failMsg) {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({
+          fileList: fileList,
+          success: true,
+          repoName: repoName
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': imgPressAuthToken
+        }
+      })
+      await res.json()
+    } else {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({
+          errorMsg: failMsg,
+          success: false,
+          repoName: repoName
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': imgPressAuthToken
+        }
+      })
+      await res.json()
+    }
+  } catch (err) {
+    return { err }
   }
 
 }
@@ -234,12 +239,18 @@ const main = async () => {
       exit(1)
     }
 
-    await phoneHome({ fileList, imgPressAuthToken, repoUrl })
+    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, repoUrl })
+    if (errPhone) {
+      console.error(errPhone)
+    }
     exit(0)
   } catch (err) {
     console.log('main err')
     console.error(err)
-    await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
+    const { err: errPhone } = await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
+    if (errPhone) {
+      console.error(errPhone)
+    }
     exit(1)
   }
 }
