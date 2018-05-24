@@ -182,8 +182,8 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
         }
       })
       await res.json()
-      return { data: 'success' }
     }
+    return { data: 'success' }
   } catch (err) {
     return { err }
   }
