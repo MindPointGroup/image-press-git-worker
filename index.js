@@ -167,7 +167,8 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
           'Authorization': imgPressAuthToken
         }
       })
-      await res.json()
+      const result = await res.json()
+      console.log(result)
     } else {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -181,7 +182,8 @@ const phoneHome = async ({fileList, imgPressAuthToken, failMsg, repoUrl}) => {
           'Authorization': imgPressAuthToken
         }
       })
-      await res.json()
+      const result = await res.json()
+      console.log(result)
     }
     return { data: 'success' }
   } catch (err) {
