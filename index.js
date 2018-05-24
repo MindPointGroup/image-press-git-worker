@@ -74,7 +74,7 @@ const createArchive = async ({ format, repoBranch }) => {
   }
 }
 
-const pushToS3 = async ({ repoUrl, imgPressAuthToken }) => {
+const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
   try {
     let pushEndpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/upload'
     if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/repo/upload'
@@ -85,7 +85,9 @@ const pushToS3 = async ({ repoUrl, imgPressAuthToken }) => {
       method: 'POST',
       body: JSON.stringify({
         zipArchive: zipArchive,
-        tarArchive: tarArchive
+        tarArchive: tarArchive,
+        repoName: safeRepoUrl,
+        repoBranch: repoBranch
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -233,7 +235,7 @@ const main = async () => {
       throw errZip
     }
 
-    const { err: errPush } = await pushToS3({ imgPressAuthToken, repoUrl })
+    const { err: errPush } = await pushToS3({ imgPressAuthToken, repoUrl, repoBranch })
     if (errPush) {
       throw errPush
     }
