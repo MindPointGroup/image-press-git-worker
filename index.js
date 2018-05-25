@@ -82,14 +82,16 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     const safeRepoUrl = repoUrl.split(/[^\w\s]/gi).join('')
     const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
+    const postBody = {
+      zipArchive: zipArchive,
+      tarArchive: tarArchive,
+      repoName: safeRepoUrl,
+      repoBranch: repoBranch
+    }
+    console.log('POSTing: ', postBody)
     const res = await fetch(pushEndpoint, {
       method: 'POST',
-      body: JSON.stringify({
-        zipArchive: zipArchive,
-        tarArchive: tarArchive,
-        repoName: safeRepoUrl,
-        repoBranch: repoBranch
-      }),
+      body: JSON.stringify(postBody),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': imgPressAuthToken
@@ -98,9 +100,7 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     const result = await res.json()
     if (!res.ok) {
       console.error(result)
-      if (result.message === 'Unauthorized') {
-        console.error(`Auth failed with token: ${imgPressAuthToken}`)
-      }
+      console.error(`Auth failed with token: ${imgPressAuthToken}`)
       return { err: new Error('Upload Failure') }
     }
     await res.json()
