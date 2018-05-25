@@ -113,8 +113,6 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
   try {
     username = encodeURIComponent(username)
     let gitCmd = 'git clone'
-    const sshAgentStart = 'exec ssh-agent bash'
-    const sshAdd = 'ssh-add /tmp/imgpress/.ssh/id_rsa'
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
     const protocol = url.protocol ? url.protocol : 'ssh:'
@@ -133,11 +131,8 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
         console.log(`SSH protocol detected for ${repoUrl}`)
         const privateKey = Buffer.from(secret, 'base64').toString('ascii')
         console.log(privateKey)
-        execSync(`rm /tmp/imgpress/.ssh/id_rsa || true`)
-        writeFileSync('/tmp/imgpress/.ssh/id_rsa', privateKey, {mode: 0o400})
-        execSync(`openssl rsa -in /tmp/imgpress/.ssh/id_rsa -check`) // validate private key
-        execSync(sshAgentStart)
-        execSync(sshAdd)
+        writeFileSync('/root/.ssh/id_rsa', privateKey, {mode: 0o400})
+        execSync(`openssl rsa -in /root/.ssh/id_rsa -check`) // validate private key
         break
       default:
         return { err: new Error(`Unsupported Protocol '${protocol}' Detected. Failing...`) }
@@ -214,7 +209,7 @@ const main = async () => {
   }
   try {
     if (!existsSync('/tmp/imgpress')) mkdirSync('/tmp/imgpress')
-    if (!existsSync('/tmp/imgpress/.ssh')) mkdirSync('/tmp/imgpress/.ssh', {mode: 0o600})
+    if (!existsSync('/root/.ssh')) mkdirSync('/root/.ssh', {mode: 0o600})
 
     const { err: errNetwork } = await validateNetwork({ endpoint: repoUrl })
     if (errNetwork) {
