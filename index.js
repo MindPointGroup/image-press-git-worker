@@ -175,7 +175,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         console.log(result)
         await phoneHome({ failMsg: result.message, imgPressAuthToken, repoUrl })
       }
-      return { data: result }
+      execSync('shutdown -h now')
     } else {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -195,7 +195,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         console.log(result)
         return { error: result.message }
       }
-      return { data: result }
+      execSync('shutdown -h now')
     }
   } catch (err) {
     return { err }
@@ -250,16 +250,14 @@ const main = async () => {
     if (errPhone) {
       throw errPhone
     }
-    console.log('IMGPRESS GIT WORKER SUCCESSFUL')
-    execSync('shutdown -h now')
   } catch (err) {
     console.error(err)
+    console.log('IMGPRESS GIT WORKER FAILURE')
     const { err: errPhone } = await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
     if (errPhone) {
       console.error(errPhone)
+      execSync('shutdown -h now')
     }
-    console.log('IMGPRESS GIT WORKER FAILURE')
-    execSync('shutdown -h now')
   }
 }
 
