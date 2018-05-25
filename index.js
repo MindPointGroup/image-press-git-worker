@@ -98,6 +98,9 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     const result = await res.json()
     if (!res.ok) {
       console.error(result)
+      if (result.message === 'Unauthorized') {
+        console.error(`Auth failed with token: ${imgPressAuthToken}`)
+      }
       return { err: new Error('Upload Failure') }
     }
     await res.json()
@@ -180,7 +183,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         body: JSON.stringify({
           errorMsg: failMsg,
           success: false,
-          repoName: repoName
+          repoName: repoUrl
         }),
         headers: {
           'Content-Type': 'application/json',
