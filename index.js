@@ -113,8 +113,8 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
   try {
     username = encodeURIComponent(username)
     let gitCmd = 'git clone'
+    const sshAgentStart = 'exec ssh-agent bash'
     const sshAdd = 'ssh-add /tmp/imgpress/.ssh/id_rsa'
-    const sshRm = 'ssh-add -D'
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
     const protocol = url.protocol ? url.protocol : 'ssh:'
@@ -136,7 +136,7 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
         execSync(`rm /tmp/imgpress/.ssh/id_rsa || true`)
         writeFileSync('/tmp/imgpress/.ssh/id_rsa', privateKey, {mode: 0o400})
         execSync(`openssl rsa -in /tmp/imgpress/.ssh/id_rsa -check`) // validate private key
-        execSync(sshRm)
+        execSync(sshAgentStart)
         execSync(sshAdd)
         break
       default:
