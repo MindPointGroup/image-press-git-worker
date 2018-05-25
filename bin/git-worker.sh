@@ -3,6 +3,11 @@
 set -e
 
 pacman -Sy --noconfirm zip sshpass nodejs npm git tar
-npm install -g git+https://github.com/MindPointGroup/image-press-git-worker.git
 
+touch ~/.ssh/config
+cat << EOF > ~/.ssh/config 
+Host *
+    IdentityFile ~/.ssh/id_rsa
+    IdentitiesOnly yes
+EOF
 
