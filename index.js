@@ -132,6 +132,7 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
       case 'ssh:':
         console.log(`SSH protocol detected for ${repoUrl}`)
         const privateKey = Buffer.from(secret, 'base64').toString('ascii')
+        console.log(privateKey)
         execSync(`rm /tmp/imgpress/.ssh/id_rsa || true`)
         writeFileSync('/tmp/imgpress/.ssh/id_rsa', privateKey, {mode: 0o400})
         execSync(`openssl rsa -in /tmp/imgpress/.ssh/id_rsa -check`) // validate private key
@@ -167,8 +168,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
           'Authorization': imgPressAuthToken
         }
       })
-      console.log(res)
-      console.log(res.ok)
+
       const result = await res.json()
 
       if (!res.ok) {
@@ -214,7 +214,7 @@ const main = async () => {
   }
   try {
     if (!existsSync('/tmp/imgpress')) mkdirSync('/tmp/imgpress')
-    if (!existsSync('/tmp/imgpress/.ssh')) mkdirSync('/tmp/imgpress/.ssh')
+    if (!existsSync('/tmp/imgpress/.ssh')) mkdirSync('/tmp/imgpress/.ssh', {mode: 0o600})
 
     const { err: errNetwork } = await validateNetwork({ endpoint: repoUrl })
     if (errNetwork) {
