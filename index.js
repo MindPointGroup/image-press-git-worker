@@ -76,6 +76,7 @@ const createArchive = async ({ format, repoBranch }) => {
 
 const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
   try {
+    console.log('Attempting to send repo archives to imgpress.io')
     let pushEndpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/upload'
     if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/repo/upload'
     const safeRepoUrl = repoUrl.split(/[^\w\s]/gi).join('')
@@ -94,9 +95,13 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
         'Authorization': imgPressAuthToken
       }
     })
+    const result = await res.json()
+    if (!res.ok) {
+      console.error(result)
+      return { err: new Error('Upload Failure') }
+    }
     await res.json()
-    return { data: 'S3 upload successful' }
-
+    return { data: 'Upload successful' }
   } catch (err) {
     return { err }
   }
@@ -145,7 +150,6 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
 const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
   try {
     console.log('Calling back to imgpress service...')
-    const repoName = getDefaultDirName(repoUrl)
     let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/status'
     if (env.IMGPRESS_ENV === 'production') endpoint = 'https://api.imgpress.io/repo/status'
     if (!failMsg) {
@@ -154,7 +158,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         body: JSON.stringify({
           fileList: fileList,
           success: true,
-          repoName: repoName
+          repoName: repoUrl
         }),
         headers: {
           'Content-Type': 'application/json',
