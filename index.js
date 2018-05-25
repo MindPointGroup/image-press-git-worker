@@ -244,15 +244,16 @@ const main = async () => {
     if (errPhone) {
       throw errPhone
     }
-    exit(0)
+    console.log('IMGPRESS GIT WORKER SUCCESSFUL')
+    execSync('shutdown -h now')
   } catch (err) {
-    console.log('main err')
     console.error(err)
     const { err: errPhone } = await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
     if (errPhone) {
       console.error(errPhone)
     }
-    exit(1)
+    console.log('IMGPRESS GIT WORKER FAILURE')
+    execSync('shutdown -h now')
   }
 }
 
