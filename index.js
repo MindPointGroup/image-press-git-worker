@@ -112,7 +112,7 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
 const cloneRepo = async ({ repoUrl, username, secret }) => {
   try {
     username = encodeURIComponent(username)
-    let gitCmd = 'GIT_SSH_COMMAND="ssh -vvv -o StrictHostKeyChecking=no" git clone'
+    let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone'
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
     const protocol = url.protocol ? url.protocol : 'ssh:'
