@@ -194,7 +194,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         return { err: result.message }
       }
 
-      //execSync('shutdown -h now')
+      execSync('shutdown -h now')
       return { data: 'success' }
     }
   } catch (err) {
