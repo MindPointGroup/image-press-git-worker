@@ -172,7 +172,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         console.log(res)
         await phoneHome({ failMsg: result.message, imgPressAuthToken, repoUrl })
       }
-      //execSync('shutdown -h now')
+      execSync('shutdown -h now')
       return { data: 'success' }
     } else {
       const res = await fetch(endpoint, {
@@ -255,7 +255,7 @@ const main = async () => {
     const { err: errPhone } = await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
     if (errPhone) {
       console.error(errPhone)
-      //execSync('shutdown -h now')
+      execSync('shutdown -h now')
     }
   }
 }
