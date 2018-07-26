@@ -170,7 +170,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         console.log(result)
         await phoneHome({ failMsg: result.message, imgPressAuthToken, repoUrl })
       }
-      execSync('shutdown -h now')
+      //execSync('shutdown -h now')
     } else {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -190,7 +190,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
         console.log(result)
         return { error: result.message }
       }
-      execSync('shutdown -h now')
+      //execSync('shutdown -h now')
     }
   } catch (err) {
     return { err }
@@ -250,7 +250,7 @@ const main = async () => {
     const { err: errPhone } = await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
     if (errPhone) {
       console.error(errPhone)
-      execSync('shutdown -h now')
+      //execSync('shutdown -h now')
     }
   }
 }
