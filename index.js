@@ -100,6 +100,7 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     const result = await res.json()
     if (!res.ok) {
       console.error(result)
+      console.error(res)
       console.error(`Auth failed with token: ${imgPressAuthToken}`)
       return { err: new Error('Upload Failure') }
     }
