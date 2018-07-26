@@ -189,7 +189,7 @@ const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
       if (!res.ok) {
         console.error('Error in reporting failure to imgpress')
         console.log(result)
-        return { error: result.message }
+        return { err: result.message }
       }
 
       return { data: 'success' }
