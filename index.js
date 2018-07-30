@@ -68,11 +68,12 @@ const createArchive = async ({ format, repoBranch }) => {
       return { err: new Error('format is required') }
     }
 
-    if (repoBranch) {
-      execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} ${repoBranch}> /tmp/imgpress/archive.${format})`)
-    } else {
-      execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} > /tmp/imgpress/archive.${format})`)
+    if (!!repoBranch) {
+      repoBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
+
     }
+
+    execSync(`git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`, { cwd: '/tmp/imgpress/repo' })
     return { data: 'success' }
   } catch (err) {
     return { err }
