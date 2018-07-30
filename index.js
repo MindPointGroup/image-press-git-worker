@@ -215,6 +215,7 @@ const main = async () => {
   const secret = argv.secret
   const username = argv.username
   const imgPressAuthToken = argv.token
+  console.log('DEBUG:', argv)
   if (!repoUrl || !imgPressAuthToken) {
     console.error('Missing arguments')
     throw new Error('Missing required arguments')
