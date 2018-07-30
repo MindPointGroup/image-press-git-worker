@@ -67,7 +67,12 @@ const createArchive = async ({ format, repoBranch }) => {
     if (!format) {
       return { err: new Error('format is required') }
     }
-    execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} ${repoBranch}> /tmp/imgpress/archive.${format})`)
+
+    if (repoBranch) {
+      execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} ${repoBranch}> /tmp/imgpress/archive.${format})`)
+    } else {
+      execSync(`(cd /tmp/imgpress/repo;git archive --format ${format} > /tmp/imgpress/archive.${format})`)
+    }
     return { data: 'success' }
   } catch (err) {
     return { err }
@@ -101,7 +106,6 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     if (!res.ok) {
       console.error(result)
       console.error(res)
-      console.error(`Auth failed with token: ${imgPressAuthToken}`)
       return { err: new Error('Upload Failure') }
     }
     return { data: 'Upload successful' }
@@ -110,10 +114,15 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
   }
 }
 
-const cloneRepo = async ({ repoUrl, username, secret }) => {
+const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
   try {
     username = encodeURIComponent(username)
-    let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone'
+    let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone --single-branch'
+
+    if (repoBranch) {
+      gitCmd = `${gitCmd} -b ${repoBranch}`
+    }
+
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
     const protocol = url.protocol ? url.protocol : 'ssh:'
@@ -145,65 +154,58 @@ const cloneRepo = async ({ repoUrl, username, secret }) => {
     return { err }
   }
 }
-
-const phoneHome = async ({ fileList, imgPressAuthToken, failMsg, repoUrl }) => {
+const phoneHome = async (args) => {
   try {
+    let {
+      fileList,
+      imgPressAuthToken,
+      status,
+      repoUrl,
+      repoName,
+      repoBranch
+    } = args
+
+    repoBranch = repoBranch || 'HEAD'
+    status = status || 'failed'
+    const body = JSON.stringify({
+      fileList,
+      status,
+      repoName,
+      repoUrl,
+      repoBranch
+    })
+
     console.log('Calling back to imgpress service...')
-    let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/status'
-    if (env.IMGPRESS_ENV === 'production') endpoint = 'https://api.imgpress.io/repo/status'
-    if (!failMsg) {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          fileList: fileList,
-          success: true,
-          repoName: repoUrl
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': imgPressAuthToken
-        }
-      })
+    let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo'
+    if (env.IMGPRESS_ENV === 'production')
+      endpoint = 'https://api.imgpress.io/repo'
 
-      const result = await res.json()
-
-      if (!res.ok) {
-        console.log(result)
-        console.log(res)
-        await phoneHome({ failMsg: result.message, imgPressAuthToken, repoUrl })
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      body,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': imgPressAuthToken
       }
-      execSync('shutdown -h now')
-      return { data: 'success' }
-    } else {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          errorMsg: failMsg,
-          success: false,
-          repoName: repoUrl
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': imgPressAuthToken
-        }
-      })
-      const result = await res.json()
-      if (!res.ok) {
-        console.error('Error in reporting failure to imgpress')
-        console.log(result)
-        return { err: result.message }
-      }
+    })
 
-      execSync('shutdown -h now')
-      return { data: 'success' }
+    const result = await res.json()
+    if (!res.ok) {
+      console.error('Error in reporting failure to imgpress')
+      console.log(result)
+      return { err: result.message }
     }
+
+    execSync('shutdown -h now')
+    return { data: 'success' }
   } catch (err) {
     return { err }
   }
 }
 
 const main = async () => {
-  const repoBranch = argv.branch || 'HEAD'
+  const repoBranch = argv.branch
+  const repoName = argv.name
   const repoUrl = argv.url
   const secret = argv.secret
   const username = argv.username
@@ -220,7 +222,7 @@ const main = async () => {
       throw errNetwork
     }
 
-    const { err: errClone } = await cloneRepo({ repoUrl, username, secret })
+    const { err: errClone } = await cloneRepo({ repoUrl, repoBranch, username, secret })
     if (errClone) {
       throw errClone
     }
@@ -245,14 +247,14 @@ const main = async () => {
       throw errPush
     }
 
-    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, repoUrl })
+    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, repoUrl, repoName, repoBranch })
     if (errPhone) {
       throw errPhone
     }
   } catch (err) {
     console.error(err)
-    console.log('IMGPRESS GIT WORKER FAILURE')
-    const { err: errPhone } = await phoneHome({ failMsg: err.message, imgPressAuthToken, repoUrl })
+    console.error('IMGPRESS GIT WORKER FAILURE')
+    const { err: errPhone } = await phoneHome({ status: 'failed', imgPressAuthToken, repoUrl, repoName, repoBranch })
     if (errPhone) {
       console.error(errPhone)
       execSync('shutdown -h now')
