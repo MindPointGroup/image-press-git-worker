@@ -119,7 +119,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     username = encodeURIComponent(username)
     let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone --single-branch'
 
-    if (repoBranch) {
+    if (!!repoBranch) {
       gitCmd = `${gitCmd} -b ${repoBranch}`
     }
 
