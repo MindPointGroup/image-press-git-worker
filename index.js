@@ -68,10 +68,11 @@ const createArchive = async ({ format, repoBranch }) => {
       return { err: new Error('format is required') }
     }
 
-    if (!!repoBranch) {
+    if (!repoBranch) {
+      console.log('no repo branch supplied')
       repoBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
-
     }
+    console.log('USING => ', repoBranch)
 
     execSync(`git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`, { cwd: '/tmp/imgpress/repo' })
     return { data: 'success' }
