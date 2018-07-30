@@ -117,11 +117,9 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
 const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
   try {
     username = encodeURIComponent(username)
-    let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone --single-branch'
+    let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone'
 
-    if (!!repoBranch) {
-      gitCmd = `${gitCmd} -b ${repoBranch}`
-    }
+    console.log("DEBUG:", repoBranch)
 
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
@@ -148,7 +146,14 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
         return { err: new Error(`Unsupported Protocol '${protocol}' Detected. Failing...`) }
     }
     console.log(`Cloning ${repoUrl}`)
-    execSync(`${gitCmd} ${repoUrl} ${clonePath}`, { encoding: 'utf8' })
+
+    if (!!repoBranch) {
+      gitCmd = `${gitCmd} ${repoUrl} -b ${repoBranch}`
+    } else {
+      gitCmd = `${gitCmd} ${repoUrl}`
+    }
+
+    execSync(`${gitCmd} --single-branch ${clonePath}`, { encoding: 'utf8' })
     return { data: 'success' }
   } catch (err) {
     return { err }
