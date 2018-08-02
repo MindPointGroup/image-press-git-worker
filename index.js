@@ -227,10 +227,12 @@ const main = async () => {
       throw errNetwork
     }
 
-    const { err: errClone, repoBranch } = await cloneRepo({ repoUrl, repoBranch, username, secret })
+    const { err: errClone, data: repoData } = await cloneRepo({ repoUrl, repoBranch, username, secret })
     if (errClone) {
       throw errClone
     }
+
+    repoBranch = repoData.repoBranch
 
     console.log('Branch after clone: ', repoBranch)
 
