@@ -128,7 +128,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
         if (secret) {
           // probably a private repo, so setup the uri accordingly
           secret = encodeURIComponent(secret)
-          repoUrl = repoUrl.replace(protocol, `${protocol}//${username}:${secret}@`)
+          repoUrl = repoUrl.replace(`${protocol}//`, `${protocol}//${username}:${secret}@`)
         }
         break
       case 'ssh:':
