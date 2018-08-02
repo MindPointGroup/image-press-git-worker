@@ -208,11 +208,11 @@ const phoneHome = async (args) => {
 }
 
 const main = async () => {
-  let repoBranch = argv.branch
+  let repoBranch = argv.branch || undefined
   const repoName = argv.name
   const repoUrl = argv.url
-  const secret = argv.secret
-  const username = argv.username
+  const secret = argv.secret || undefined
+  const username = argv.username || undefined
   const imgPressAuthToken = argv.token
   console.log('DEBUG:', argv)
   if (!repoUrl || !imgPressAuthToken) {
