@@ -145,11 +145,14 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
       gitCmd = `${gitCmd} ${repoUrl} -b ${repoBranch}`
     } else {
       gitCmd = `${gitCmd} ${repoUrl}`
-      const detectedBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
     }
 
     console.log(`Cloning ${repoUrl}`)
     execSync(`${gitCmd} --single-branch ${clonePath}`, { encoding: 'utf8' })
+
+    if (!!repoBranch) {
+      const detectedBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
+    }
 
     return { data: 
       { repoBranch : detectedBranch || repoBranch } 
@@ -169,7 +172,7 @@ const phoneHome = async (args) => {
       repoBranch
     } = args
 
-    repoBranch = repoBranch || 'HEAD'
+    console.log('PHONE HOME ARGS': args)
     status = status || 'failed'
     const body = JSON.stringify({
       fileList,
