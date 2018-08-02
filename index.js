@@ -112,6 +112,7 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
 
 const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
   try {
+    let detectedBranch = false
     username = encodeURIComponent(username)
     let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone'
 
@@ -151,7 +152,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     execSync(`${gitCmd} --single-branch ${clonePath}`, { encoding: 'utf8' })
 
     if (!!repoBranch) {
-      const detectedBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
+      detectedBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
     }
 
     return { data: 
@@ -167,7 +168,7 @@ const phoneHome = async (args) => {
       fileList,
       imgPressAuthToken,
       status,
-      repoUrl,
+      url: repoUrl,
       repoName,
       repoBranch
     } = args
@@ -178,7 +179,7 @@ const phoneHome = async (args) => {
       fileList,
       status,
       repoName,
-      repoUrl,
+      url: repoUrl,
       repoBranch
     })
 
