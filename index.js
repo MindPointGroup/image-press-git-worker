@@ -5,7 +5,7 @@ const { promisify } = require('util')
 const { parse } = require('url')
 const { join } = require('path')
 const { existsSync, mkdirSync } = require('fs')
-const { execSync } = require('child_process')
+const { spawnSync } = require('child_process')
 const { writeFileSync, readFileSync, readdirSync, statSync } = require('fs')
 const fetch = require('node-fetch')
 const lookupAsync = promisify(lookup)
@@ -49,6 +49,27 @@ const listFiles = (repoDir) => {
   }
 }
 
+const shellCmd = async ({ cmd, cwd }) => {
+  try {
+    const opts = {
+      shell: true
+    }
+    if (cwd) opts.cwd = cwd
+
+    const res = spawnSync(cmd, opts)
+
+    if (res.status !=== 0) {
+      return { err: new Error(res.stderr.toString()) }
+    }
+
+    const data = {
+      output: res.stdout.toString()
+    }
+  } catch (err) {
+    return { err }
+  }
+}
+
 const validateNetwork = async ({ endpoint }) => {
   try {
     console.log(`Checking network access and resolution to ==> '${endpoint}'`)
@@ -68,7 +89,16 @@ const createArchive = async ({ format, repoBranch }) => {
       return { err: new Error('format is required') }
     }
 
-    execSync(`git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`, { cwd: '/tmp/imgpress/repo' })
+    const opts {
+      cmd:  `git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`,
+      cwd: '/tmp/imgpress/repo'
+    }
+
+    const { err } = await shellCmd(opts)
+    if (err) {
+      return { err }
+    }
+
     return { data: 'success' }
   } catch (err) {
     return { err }
@@ -136,7 +166,11 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
         console.log(`SSH protocol detected for ${repoUrl}`)
         const privateKey = Buffer.from(secret, 'base64').toString('ascii')
         writeFileSync('/root/.ssh/id_rsa', privateKey, {mode: 0o400})
-        execSync(`openssl rsa -in /root/.ssh/id_rsa -check`) // validate private key
+        const sshVerifyCmd = 'openssl rsa -in /root/.ssh/id_rsa -check'
+        const { err: sshVerifyErr } = await shellCmd({ cmd: sshVerifyCmd })
+        if (sshVerifyErr ) {
+          return { err }
+        }
         break
       default:
         return { err: new Error(`Unsupported Protocol '${protocol}' Detected. Failing...`) }
@@ -149,10 +183,22 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     }
 
     console.log(`Cloning ${repoUrl}`)
-    execSync(`${gitCmd} --single-branch ${clonePath}`, { encoding: 'utf8' })
+    const cloneCmd = `${gitCmd} --single-branch ${clonePath}`
+    const { err: cloneErr } = await shellCmd({ cmd: cloneCmd })
 
     if (!!repoBranch) {
-      detectedBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
+      const getBranchCmd = 'git rev-parse --abbrev-ref HEAD'
+      const getBranchCwd = '/tmp/imgpress/repo'
+      const { err: getBranchErr, data: getBranchData } = await shellCmd({
+        cwd: getBranchCwd,
+        cmd: getBranchCmd
+      }) 
+
+      if (getBranchErr) {
+        return { err: getBranchErr }
+      }
+
+      detectedBranch = getBranchData.output
     }
 
     return { data: 
@@ -162,13 +208,14 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     return { err }
   }
 }
+
 const phoneHome = async (args) => {
   try {
     let {
       fileList,
       imgPressAuthToken,
       status,
-      url: repoUrl,
+      repoUrl,
       repoName,
       repoBranch
     } = args
@@ -204,7 +251,7 @@ const phoneHome = async (args) => {
       return { err: result.message }
     }
 
-    execSync('shutdown -h now')
+    spawnSync('shutdown -h now')
     return { data: 'success' }
   } catch (err) {
     return { err }
@@ -270,7 +317,7 @@ const main = async () => {
     const { err: errPhone } = await phoneHome({ status: 'failed', imgPressAuthToken, repoUrl, repoName, repoBranch })
     if (errPhone) {
       console.error(errPhone)
-      execSync('shutdown -h now')
+      spawnSync('shutdown -h now')
     }
   }
 }
