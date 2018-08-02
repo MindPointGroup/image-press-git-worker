@@ -172,7 +172,7 @@ const phoneHome = async (args) => {
       repoBranch
     } = args
 
-    console.log('PHONE HOME ARGS': args)
+    console.log('PHONE HOME ARGS ', args)
     status = status || 'failed'
     const body = JSON.stringify({
       fileList,
