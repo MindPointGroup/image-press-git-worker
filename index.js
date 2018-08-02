@@ -68,12 +68,6 @@ const createArchive = async ({ format, repoBranch }) => {
       return { err: new Error('format is required') }
     }
 
-    if (!repoBranch) {
-      console.log('no repo branch supplied')
-      repoBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
-    }
-    console.log('USING => ', repoBranch)
-
     execSync(`git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`, { cwd: '/tmp/imgpress/repo' })
     return { data: 'success' }
   } catch (err) {
@@ -128,35 +122,38 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     const protocol = url.protocol ? url.protocol : 'ssh:'
     console.log(`Attempting to clone ${repoUrl}`)
     switch (protocol) {
-      case 'http:':
+      case 'http:': // hopefully no one uses http for git but it's possible so we handle it
       case 'https:':
         console.log(`HTTP/S protocol detected for ${repoUrl}`)
         if (secret) {
           // probably a private repo, so setup the uri accordingly
           secret = encodeURIComponent(secret)
-          repoUrl = repoUrl.replace('https://', `https://${username}:${secret}@`)
+          repoUrl = repoUrl.replace(protocol, `${protocol}//${username}:${secret}@`)
         }
         break
       case 'ssh:':
         console.log(`SSH protocol detected for ${repoUrl}`)
         const privateKey = Buffer.from(secret, 'base64').toString('ascii')
-        console.log(privateKey)
         writeFileSync('/root/.ssh/id_rsa', privateKey, {mode: 0o400})
         execSync(`openssl rsa -in /root/.ssh/id_rsa -check`) // validate private key
         break
       default:
         return { err: new Error(`Unsupported Protocol '${protocol}' Detected. Failing...`) }
     }
-    console.log(`Cloning ${repoUrl}`)
 
-    if (!!repoBranch) {
+    if (repoBranch) {
       gitCmd = `${gitCmd} ${repoUrl} -b ${repoBranch}`
     } else {
       gitCmd = `${gitCmd} ${repoUrl}`
+      const detectedBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: '/tmp/imgpress/repo' }).toString()
     }
 
+    console.log(`Cloning ${repoUrl}`)
     execSync(`${gitCmd} --single-branch ${clonePath}`, { encoding: 'utf8' })
-    return { data: 'success' }
+
+    return { data: 
+      { repoBranch : detectedBranch || repoBranch } 
+    }
   } catch (err) {
     return { err }
   }
@@ -211,7 +208,7 @@ const phoneHome = async (args) => {
 }
 
 const main = async () => {
-  const repoBranch = argv.branch
+  let repoBranch = argv.branch
   const repoName = argv.name
   const repoUrl = argv.url
   const secret = argv.secret
@@ -230,10 +227,12 @@ const main = async () => {
       throw errNetwork
     }
 
-    const { err: errClone } = await cloneRepo({ repoUrl, repoBranch, username, secret })
+    const { err: errClone, repoBranch } = await cloneRepo({ repoUrl, repoBranch, username, secret })
     if (errClone) {
       throw errClone
     }
+
+    console.log('Branch after clone: ', repoBranch)
 
     const { err: errFiles, data: fileList } = listFiles('/tmp/imgpress/repo')
     if (errFiles) {
