@@ -5,7 +5,7 @@ const { promisify } = require('util')
 const { parse } = require('url')
 const { join } = require('path')
 const { existsSync, mkdirSync } = require('fs')
-const { spawnSync } = require('child_process')
+const { execSync, spawnSync } = require('child_process')
 const { writeFileSync, readFileSync, readdirSync, statSync } = require('fs')
 const fetch = require('node-fetch')
 const lookupAsync = promisify(lookup)
@@ -254,7 +254,7 @@ const phoneHome = async (args) => {
       return { err: result.message }
     }
 
-    spawnSync('shutdown -h now')
+    execSync('shutdown -h now')
     return { data: 'success' }
   } catch (err) {
     return { err }
@@ -322,7 +322,7 @@ const main = async () => {
     const { err: errPhone } = await phoneHome({ status: 'failed', imgPressAuthToken, repoUrl, repoName, repoBranch })
     if (errPhone) {
       console.error(errPhone)
-      spawnSync('shutdown -h now')
+      execSync('shutdown -h now')
       exit(1)
     }
   }
