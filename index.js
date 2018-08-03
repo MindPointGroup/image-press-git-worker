@@ -212,7 +212,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
 
 const phoneHome = async (args) => {
   try {
-    let {
+    const {
       fileList,
       imgPressAuthToken,
       status,
@@ -221,7 +221,6 @@ const phoneHome = async (args) => {
       repoBranch
     } = args
 
-    status = status || 'failed'
     const body = JSON.stringify({
       fileList,
       status,
@@ -303,7 +302,7 @@ const main = async () => {
       throw errPush
     }
 
-    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, repoUrl, repoName, repoBranch })
+    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, status: 'available', repoUrl, repoName, repoBranch })
     if (errPhone) {
       throw errPhone
     }
