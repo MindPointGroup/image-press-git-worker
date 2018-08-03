@@ -58,13 +58,15 @@ const shellCmd = async ({ cmd, cwd }) => {
 
     const res = spawnSync(cmd, opts)
 
-    if (res.status !=== 0) {
+    if (res.status !== 0) {
       return { err: new Error(res.stderr.toString()) }
     }
 
     const data = {
       output: res.stdout.toString()
     }
+
+    return { data }
   } catch (err) {
     return { err }
   }
@@ -89,8 +91,8 @@ const createArchive = async ({ format, repoBranch }) => {
       return { err: new Error('format is required') }
     }
 
-    const opts {
-      cmd:  `git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`,
+    const opts = {
+      cmd: `git archive --format ${format} ${repoBranch.trim()}> /tmp/imgpress/archive.${format}`,
       cwd: '/tmp/imgpress/repo'
     }
 
@@ -146,7 +148,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     username = encodeURIComponent(username)
     let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone'
 
-    console.log("DEBUG:", repoBranch)
+    console.log('DEBUG:', repoBranch)
 
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
@@ -168,8 +170,8 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
         writeFileSync('/root/.ssh/id_rsa', privateKey, {mode: 0o400})
         const sshVerifyCmd = 'openssl rsa -in /root/.ssh/id_rsa -check'
         const { err: sshVerifyErr } = await shellCmd({ cmd: sshVerifyCmd })
-        if (sshVerifyErr ) {
-          return { err }
+        if (sshVerifyErr) {
+          return { err: sshVerifyErr }
         }
         break
       default:
@@ -185,14 +187,17 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     console.log(`Cloning ${repoUrl}`)
     const cloneCmd = `${gitCmd} --single-branch ${clonePath}`
     const { err: cloneErr } = await shellCmd({ cmd: cloneCmd })
+    if (cloneErr) {
+      return { err: cloneErr }
+    }
 
-    if (!!repoBranch) {
+    if (repoBranch) {
       const getBranchCmd = 'git rev-parse --abbrev-ref HEAD'
       const getBranchCwd = '/tmp/imgpress/repo'
       const { err: getBranchErr, data: getBranchData } = await shellCmd({
         cwd: getBranchCwd,
         cmd: getBranchCmd
-      }) 
+      })
 
       if (getBranchErr) {
         return { err: getBranchErr }
@@ -201,8 +206,8 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
       detectedBranch = getBranchData.output
     }
 
-    return { data: 
-      { repoBranch : detectedBranch || repoBranch } 
+    return { data:
+      { repoBranch: detectedBranch || repoBranch }
     }
   } catch (err) {
     return { err }
@@ -220,7 +225,6 @@ const phoneHome = async (args) => {
       repoBranch
     } = args
 
-    console.log('PHONE HOME ARGS ', args)
     status = status || 'failed'
     const body = JSON.stringify({
       fileList,
@@ -232,8 +236,7 @@ const phoneHome = async (args) => {
 
     console.log('Calling back to imgpress service...')
     let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo'
-    if (env.IMGPRESS_ENV === 'production')
-      endpoint = 'https://api.imgpress.io/repo'
+    if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/repo' }
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -311,6 +314,7 @@ const main = async () => {
     if (errPhone) {
       throw errPhone
     }
+    exit(0)
   } catch (err) {
     console.error(err)
     console.error('IMGPRESS GIT WORKER FAILURE')
@@ -318,6 +322,7 @@ const main = async () => {
     if (errPhone) {
       console.error(errPhone)
       spawnSync('shutdown -h now')
+      exit(1)
     }
   }
 }
