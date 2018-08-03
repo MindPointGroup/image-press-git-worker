@@ -77,7 +77,7 @@ const validateNetwork = async ({ endpoint }) => {
     console.log(`Checking network access and resolution to ==> '${endpoint}'`)
     const url = parse(endpoint)
     const data = await lookupAsync(url.hostname)
-    console.log(`Network connectivity successful for ==> '${endpoint}'`)
+    console.log(`Network connectivity successful!`)
     return { data }
   } catch (err) {
     console.log(`Unable to access ==> '${endpoint}'`)
@@ -121,7 +121,6 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
       repoName: safeRepoUrl,
       repoBranch: repoBranch
     }
-    console.log('POSTing: ', postBody)
     const res = await fetch(pushEndpoint, {
       method: 'POST',
       body: JSON.stringify(postBody),
@@ -132,7 +131,6 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     })
     const result = await res.json()
     if (!res.ok) {
-      console.error(result)
       console.error(res)
       return { err: new Error('Upload Failure') }
     }
@@ -147,8 +145,6 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
     let detectedBranch = false
     username = encodeURIComponent(username)
     let gitCmd = 'GIT_SSH_COMMAND="ssh -v -o StrictHostKeyChecking=no" git clone'
-
-    console.log('DEBUG:', repoBranch)
 
     const clonePath = '/tmp/imgpress/repo'
     const url = parse(repoUrl)
@@ -268,7 +264,6 @@ const main = async () => {
   const secret = argv.secret || false
   const username = argv.username || false
   const imgPressAuthToken = argv.token
-  console.log('DEBUG:', argv)
   if (!repoUrl || !imgPressAuthToken) {
     console.error('Missing arguments')
     throw new Error('Missing required arguments')
@@ -287,9 +282,6 @@ const main = async () => {
     }
 
     repoBranch = repoData.repoBranch
-
-    console.log('Branch after clone: ', repoBranch)
-    console.log('Branch detected: ', repoData.repoBranch)
 
     const { err: errFiles, data: fileList } = listFiles('/tmp/imgpress/repo')
     if (errFiles) {
