@@ -191,7 +191,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
       return { err: cloneErr }
     }
 
-    if (repoBranch) {
+    if (!repoBranch) {
       const getBranchCmd = 'git rev-parse --abbrev-ref HEAD'
       const getBranchCwd = '/tmp/imgpress/repo'
       const { err: getBranchErr, data: getBranchData } = await shellCmd({
@@ -289,6 +289,7 @@ const main = async () => {
     repoBranch = repoData.repoBranch
 
     console.log('Branch after clone: ', repoBranch)
+    console.log('Branch detected: ', repoData.repoBranch)
 
     const { err: errFiles, data: fileList } = listFiles('/tmp/imgpress/repo')
     if (errFiles) {
