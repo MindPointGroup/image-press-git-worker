@@ -226,7 +226,8 @@ const phoneHome = async (args) => {
       status,
       repoName,
       url: repoUrl,
-      repoBranch
+      repoBranch,
+      noWorker: true
     })
 
     console.log('Calling back to imgpress service...')
