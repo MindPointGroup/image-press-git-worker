@@ -115,12 +115,14 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     const safeRepoUrl = repoUrl.split(/[^\w\s]/gi).join('')
     const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
+
     const postBody = {
       zipArchive: zipArchive,
       tarArchive: tarArchive,
       repoName: safeRepoUrl,
       repoBranch: repoBranch
     }
+
     const res = await fetch(pushEndpoint, {
       method: 'POST',
       body: JSON.stringify(postBody),
@@ -129,7 +131,7 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
         'Authorization': imgPressAuthToken
       }
     })
-    const result = await res.json()
+
     if (!res.ok) {
       console.error(res)
       return { err: new Error('Upload Failure') }
