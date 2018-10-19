@@ -107,7 +107,7 @@ const createArchive = async ({ format, repoBranch }) => {
   }
 }
 
-const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
+const pushToS3 = async ({ region, arn, eid, repoUrl, repoBranch, imgPressAuthToken }) => {
   try {
     console.log('Attempting to send repo archives to imgpress.io')
     let pushEndpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/upload'
@@ -117,10 +117,13 @@ const pushToS3 = async ({ repoUrl, repoBranch, imgPressAuthToken }) => {
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
 
     const postBody = {
-      zipArchive: zipArchive,
-      tarArchive: tarArchive,
+      zipArchive,
+      tarArchive,
       repoName: safeRepoUrl,
-      repoBranch: repoBranch
+      repoBranch,
+      region,
+      public: arn,
+      private: eid
     }
 
     const res = await fetch(pushEndpoint, {
@@ -263,6 +266,9 @@ const main = async () => {
   let repoBranch = argv.branch || false
   const repoName = argv.name
   const repoUrl = argv.url
+  const region = argv.region
+  const eid = argv.eid
+  const arn = argv.arn
   const secret = argv.secret || false
   const username = argv.username || false
   const imgPressAuthToken = argv.token
@@ -300,7 +306,7 @@ const main = async () => {
       throw errZip
     }
 
-    const { err: errPush } = await pushToS3({ imgPressAuthToken, repoUrl, repoBranch })
+    const { err: errPush } = await pushToS3({ region, arn, eid, imgPressAuthToken, repoUrl, repoBranch })
     if (errPush) {
       throw errPush
     }
