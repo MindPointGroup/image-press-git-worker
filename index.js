@@ -110,8 +110,8 @@ const createArchive = async ({ format, repoBranch }) => {
 const pushToS3 = async ({ region, arn, eid, repoUrl, repoBranch, imgPressAuthToken }) => {
   try {
     console.log('Attempting to send repo archives to imgpress.io')
-    let pushEndpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repo/upload'
-    if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/repo/upload'
+    let pushEndpoint = 'https://api.dev.imgpress.io/v0/repo/upload'
+    if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/v0/repo/upload'
     const safeRepoUrl = repoUrl.split(/[^\w\s]/gi).join('')
     const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
@@ -236,8 +236,8 @@ const phoneHome = async (args) => {
     })
 
     console.log('Calling back to imgpress service...')
-    let endpoint = 'https://tow7iwnbqb.execute-api.us-east-1.amazonaws.com/dev/repos'
-    if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/repos' }
+    let endpoint = 'https://api.dev.imgpress.io/v0/repos'
+    if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/v0/repos' }
 
     const res = await fetch(endpoint, {
       method: 'POST',
