@@ -236,8 +236,8 @@ const phoneHome = async (args) => {
     })
 
     console.log('Calling back to imgpress service...')
-    let endpoint = 'https://api.dev.imgpress.io/v0/repos'
-    if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/v0/repos' }
+    let endpoint = 'https://api.dev.imgpress.io/v0/repo'
+    if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/v0/repo' }
 
     const res = await fetch(endpoint, {
       method: 'POST',
