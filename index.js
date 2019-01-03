@@ -112,14 +112,13 @@ const pushToS3 = async ({ region, arn, eid, repoUrl, repoBranch, imgPressAuthTok
     console.log('Attempting to send repo archives to imgpress.io')
     let pushEndpoint = 'https://api.dev.imgpress.io/v0/repo/upload'
     if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/v0/repo/upload'
-    const safeRepoUrl = repoUrl.split(/[^\w\s]/gi).join('')
     const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
 
     const postBody = {
       zipArchive,
       tarArchive,
-      repoName: safeRepoUrl,
+      repoUrl,
       repoBranch,
       region,
       public: arn,
