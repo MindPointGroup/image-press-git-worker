@@ -125,6 +125,8 @@ const pushToS3 = async ({ region, arn, eid, repoUrl, repoBranch, imgPressAuthTok
       private: eid
     }
 
+    console.log('POSTING ', postBody)
+
     const res = await fetch(pushEndpoint, {
       method: 'POST',
       body: JSON.stringify(postBody),
