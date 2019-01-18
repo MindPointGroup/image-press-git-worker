@@ -107,7 +107,7 @@ const createArchive = async ({ format, repoBranch }) => {
   }
 }
 
-const pushToS3 = async ({ region, arn, eid, repoUrl, repoBranch, imgPressAuthToken }) => {
+const pushToS3 = async ({ region, id, repoUrl, repoBranch, imgPressAuthToken }) => {
   try {
     console.log('Attempting to send repo archives to imgpress.io')
     let pushEndpoint = 'https://api.dev.imgpress.io/v0/repo/upload'
@@ -121,8 +121,7 @@ const pushToS3 = async ({ region, arn, eid, repoUrl, repoBranch, imgPressAuthTok
       repoUrl,
       repoBranch,
       region,
-      public: arn,
-      private: eid
+      id
     }
 
     console.log('POSTING ', postBody)
@@ -237,6 +236,7 @@ const phoneHome = async (args) => {
     })
 
     console.log('Calling back to imgpress service...')
+    console.log('POST BODY')
     let endpoint = 'https://api.dev.imgpress.io/v0/repo'
     if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/v0/repo' }
 
@@ -268,8 +268,7 @@ const main = async () => {
   const name = argv.name
   const repoUrl = argv.url
   const region = argv.region
-  const eid = argv.eid
-  const arn = argv.arn
+  const id = argv.id
   const secret = argv.secret || false
   const username = argv.username || false
   const imgPressAuthToken = argv.token
@@ -307,7 +306,7 @@ const main = async () => {
       throw errZip
     }
 
-    const { err: errPush } = await pushToS3({ region, arn, eid, imgPressAuthToken, repoUrl, repoBranch })
+    const { err: errPush } = await pushToS3({ region, id, imgPressAuthToken, repoUrl, repoBranch })
     if (errPush) {
       throw errPush
     }
