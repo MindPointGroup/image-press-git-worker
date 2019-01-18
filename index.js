@@ -222,14 +222,14 @@ const phoneHome = async (args) => {
       imgPressAuthToken,
       status,
       repoUrl,
-      name,
+      id,
       repoBranch
     } = args
 
     const body = JSON.stringify({
       fileList,
       status,
-      name,
+      id,
       url: repoUrl,
       repoBranch,
       noWorker: true
@@ -265,7 +265,6 @@ const phoneHome = async (args) => {
 
 const main = async () => {
   let repoBranch = argv.branch || false
-  const name = argv.name
   const repoUrl = argv.url
   const region = argv.region
   const id = argv.id
@@ -311,7 +310,7 @@ const main = async () => {
       throw errPush
     }
 
-    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, status: 'available', repoUrl, name, repoBranch })
+    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, status: 'available', repoUrl, id, repoBranch })
     if (errPhone) {
       throw errPhone
     }
@@ -319,7 +318,7 @@ const main = async () => {
   } catch (err) {
     console.error(err)
     console.error('IMGPRESS GIT WORKER FAILURE')
-    const { err: errPhone } = await phoneHome({ status: 'failed', imgPressAuthToken, repoUrl, name, repoBranch })
+    const { err: errPhone } = await phoneHome({ status: 'failed', imgPressAuthToken, repoUrl, id, repoBranch })
     if (errPhone) {
       console.error(errPhone)
       execSync('shutdown -h now')
