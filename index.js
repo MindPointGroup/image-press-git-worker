@@ -215,7 +215,7 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
   }
 }
 
-const phoneHome = async (args) => {
+const phoneHome = async args => {
   try {
     const {
       fileList,
