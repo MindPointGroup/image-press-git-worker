@@ -231,7 +231,7 @@ const phoneHome = async args => {
       status,
       id,
       url: repoUrl,
-      repoBranch,
+      branch: repoBranch,
       noWorker: true
     })
 
