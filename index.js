@@ -11,11 +11,11 @@ const fetch = require('node-fetch')
 const lookupAsync = promisify(lookup)
 const argv = require('minimist')(process.argv.slice(2))
 
-const notHiddenFile = (filePath) => !(/(^|\/)\.[^/.]/).test(filePath)
+const notHiddenFile = filePath => !(/(^|\/)\.[^/.]/).test(filePath)
 
-const listFiles = (repoDir) => {
+const listFiles = repoDir => {
   try {
-    let filesToReturn = []
+    const filesToReturn = []
     const walkDir = (currentPath) => {
       let files
       try {
@@ -23,8 +23,8 @@ const listFiles = (repoDir) => {
       } catch (err) {
         return { err }
       }
-      for (let i in files) {
-        let curFile = join(currentPath, files[i])
+      for (const i in files) {
+        const curFile = join(currentPath, files[i])
         if (notHiddenFile(curFile)) {
           let isFile
           let isDir
