@@ -167,6 +167,9 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
         break
       case 'ssh:':
         console.log(`SSH protocol detected for ${repoUrl}`)
+        if (!secret) {
+          return { err: new Error('No ssh key provided for ssh protocol') }
+        }
         const privateKey = Buffer.from(secret, 'base64').toString('ascii')
         writeFileSync('/root/.ssh/id_rsa', privateKey, {mode: 0o400})
         const sshVerifyCmd = 'openssl rsa -in /root/.ssh/id_rsa -check'
