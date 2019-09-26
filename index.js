@@ -131,7 +131,7 @@ const pushToS3 = async ({ region, id, repoUrl, repoBranch, imgPressAuthToken }) 
       body: JSON.stringify(postBody),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': imgPressAuthToken
+        Authorization: imgPressAuthToken
       }
     })
 
