@@ -274,7 +274,7 @@ const main = async () => {
   const secret = argv.secret || false
   const username = argv.username || false
   const imgPressAuthToken = argv.token
-  if (!repoUrl || !imgPressAuthToken) {
+  if (!repoBranch || !repoUrl || !imgPressAuthToken) {
     console.error('Missing arguments')
     throw new Error('Missing required arguments')
   }
