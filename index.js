@@ -119,7 +119,7 @@ const pushToS3 = async ({ region, id, repoUrl, repoBranch, imgPressAuthToken }) 
       zipArchive,
       tarArchive,
       repoUrl,
-      repoBranch,
+      branch,
       region,
       id
     }
