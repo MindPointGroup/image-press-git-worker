@@ -107,7 +107,7 @@ const createArchive = async ({ format, repoBranch }) => {
   }
 }
 
-const pushToS3 = async ({ region, id, repoUrl, repoBranch, imgPressAuthToken }) => {
+const pushToS3 = async ({ region, id, repoUrl, repoBranch: branch, imgPressAuthToken }) => {
   try {
     console.log('Attempting to send repo archives to imgpress.io')
     let pushEndpoint = 'https://api.dev.imgpress.io/v0/repo/upload'
