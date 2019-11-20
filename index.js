@@ -170,9 +170,9 @@ const cloneRepo = async ({ repoUrl, repoBranch, username, secret }) => {
         if (!secret) {
           return { err: new Error('No ssh key provided for ssh protocol') }
         }
-        const privateKey = Buffer.from(secret, 'base64').toString('ascii')
-        writeFileSync('/root/.ssh/id_rsa', privateKey, {mode: 0o400})
-        const sshVerifyCmd = 'openssl rsa -in /root/.ssh/id_rsa -check'
+        const privateKey = Buffer.from(secret, 'base64').toString('ascii') + '\n'
+        writeFileSync('/tmp/mykey', privateKey, {mode: 0o400})
+        const sshVerifyCmd = 'ssh-keygen -y -e -f /tmp/mykey'
         const { err: sshVerifyErr } = await shellCmd({ cmd: sshVerifyCmd })
         if (sshVerifyErr) {
           return { err: sshVerifyErr }
