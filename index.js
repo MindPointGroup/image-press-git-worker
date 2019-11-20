@@ -107,11 +107,11 @@ const createArchive = async ({ format, repoBranch }) => {
   }
 }
 
-const pushToS3 = async ({ region, id, repoUrl, repoBranch: branch, imgPressAuthToken }) => {
+const pushToS3 = async ({ env, region, id, repoUrl, repoBranch: branch, imgPressAuthToken }) => {
   try {
     console.log('Attempting to send repo archives to imgpress.io')
     let pushEndpoint = 'https://api.dev.imgpress.io/v0/repo/upload'
-    if (env.IMGPRESS_ENV === 'production') pushEndpoint = 'https://api.imgpress.io/v0/repo/upload'
+    if (env === 'production') pushEndpoint = 'https://api.imgpress.io/v0/repo/upload'
     const tarArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.tar.gz`)).toString('base64')
     const zipArchive = Buffer.from(readFileSync(`/tmp/imgpress/archive.zip`)).toString('base64')
 
@@ -226,7 +226,8 @@ const phoneHome = async args => {
       status,
       repoUrl,
       id,
-      repoBranch
+      repoBranch,
+      env
     } = args
 
     const body = JSON.stringify({
@@ -241,7 +242,7 @@ const phoneHome = async args => {
     console.log('Calling back to imgpress service...')
     console.log('POST BODY')
     let endpoint = 'https://api.dev.imgpress.io/v0/repo'
-    if (env.IMGPRESS_ENV === 'production') { endpoint = 'https://api.imgpress.io/v0/repo' }
+    if (env === 'production') { endpoint = 'https://api.imgpress.io/v0/repo' }
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -268,6 +269,7 @@ const phoneHome = async args => {
 
 const main = async () => {
   let repoBranch = argv.branch || false
+  const env = argv.env
   const repoUrl = argv.url
   const region = argv.region
   const id = argv.id
@@ -308,12 +310,12 @@ const main = async () => {
       throw errZip
     }
 
-    const { err: errPush } = await pushToS3({ region, id, imgPressAuthToken, repoUrl, repoBranch })
+    const { err: errPush } = await pushToS3({ env, region, id, imgPressAuthToken, repoUrl, repoBranch })
     if (errPush) {
       throw errPush
     }
 
-    const { err: errPhone } = await phoneHome({ fileList, imgPressAuthToken, status: 'available', repoUrl, id, repoBranch })
+    const { err: errPhone } = await phoneHome({ env, fileList, imgPressAuthToken, status: 'available', repoUrl, id, repoBranch })
     if (errPhone) {
       throw errPhone
     }
@@ -321,7 +323,7 @@ const main = async () => {
   } catch (err) {
     console.error(err)
     console.error('IMGPRESS GIT WORKER FAILURE')
-    const { err: errPhone } = await phoneHome({ status: 'failed', imgPressAuthToken, repoUrl, id, repoBranch })
+    const { err: errPhone } = await phoneHome({ env, status: 'failed', imgPressAuthToken, repoUrl, id, repoBranch })
     if (errPhone) {
       console.error(errPhone)
       execSync('shutdown -h now')
